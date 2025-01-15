@@ -3,10 +3,10 @@ name: Build and Deploy Docker Image
 on:
   push:
     branches:
-      - main  # Run when code is pushed to the main branch
+      - main  # Trigger when code is pushed to the main branch
   pull_request:
     branches:
-      - main  # Run on PRs against the main branch
+      - main  # Trigger when a PR is created against the main branch
 
 jobs:
   build:
@@ -30,7 +30,7 @@ jobs:
     - name: Build Docker image
       run: |
         docker build -t codereviewer .
-        docker tag codereviewer SohamPrabhu/codereviewer:latest
+        docker tag codereviewer prabhusoham/codereviewer:latest
 
     - name: Log in to DockerHub
       uses: docker/login-action@v2
@@ -40,4 +40,4 @@ jobs:
 
     - name: Push Docker image to DockerHub
       run: |
-        docker push SohamPrabhu/codereviewer :latest
+        docker push prabhusoham/codereviewer:latest
