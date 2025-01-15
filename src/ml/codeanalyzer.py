@@ -46,11 +46,7 @@ class CodeAnalyzer:
             func_body = self._extract_function_body(code,func.start())
             if len(func_body.split('\n')) > self.max_function_length:
                 # Fix this part
-                issues.append({
-                    'type': 'long Function',
-                    'name': func_name,
-                    'message': f'Has Too Many Lines: ({len(func_body.split("\n"))} lines)'
-                })
+                issues.append({'type': 'long Function', 'name': func_name,'message': f'Has Too Many Lines: ({len(func_body.split("\n"))} lines)'})
 
         if self._check_nesting_depth(code) > self.max_nested_depth:
             issues.append({
