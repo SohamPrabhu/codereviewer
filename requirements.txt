@@ -3,3 +3,6 @@ uvicorn
 transformers
 tensorflow
 torch
+pydantic
+redis
+typing

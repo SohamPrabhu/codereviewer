@@ -148,9 +148,3 @@ class CodeAnalyzer:
             if matches:
                 duplicates.append((block,[i]+matches))
         return duplicates
-
-
-
-
-
-
