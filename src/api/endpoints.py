@@ -5,18 +5,9 @@ import redis
 from typing import Optional, Dict,List
 from src.ml.codeanalyzer import CodeAnalyzer
 import os
+
+
 app = FastAPI(title="CodeReviewer")
-
-try:
-    redis_client = redis.Redis(
-        host = os.getenv('REDIS_HOST', 'localhost'),
-        port = int(os.getenv('REDIS_PORT',6379)),
-        decode_responses= True
-    )
-
-
-except Exception as e:
-    print(f"Couldn't Connect to a Service: {str(e)}")
 codeanalyzer = CodeAnalyzer()
 
 
@@ -49,34 +40,36 @@ async def upload_page():
     return HTMLResponse(content=html_content)
 
 
-
+#if post file_name is called then this gets function executes
 @app.post("/analyze-file")
 async def analyze_file(file: UploadFile = File(...)):
+    #if the file is not a python file then raise this exception
     if not file.filename.endswith('.py'):
         raise HTTPException(
             status_code=400,
-
             details=" Only PY files allowed"
         )
-
     try:
+        #Read the contents of the file pause the function and wait for this to complete
         content = await file.read()
+        #translate binary file into UTF-8
         code = content.decode('utf-8')
-
+        #Analyze the Code
         analysisResults = codeanalyzer.analyze_code_snippet(code)
-
-        analysisResults['file_info'] = {'filename':file.filename,'size': len(content)}
+        #Add file into the analysis
+        analysisResults['file info'] = {'filename':file.filename,'size': len(content)}
+        #Display the info
         return JSONResponse(content= analysisResults)
+    #Display Any problems that Might occur
     except Exception as e:
         raise HTTPException(
             status_code=500,
             detail= f"Analysis Failed: {str(e)}"
         )
-    
+#This gets called if mutilple files post is ever called
 @app.post("/analyze-multiple-files")
 async def analyze_multiple_files(files: List[UploadFile] = File(...)):
-
-
+# Does the same exact thing as analyze file but goes through ever single file and returns results
     results ={}
     for file in files:
         if not file.filename.endswith('.py'):
@@ -86,28 +79,14 @@ async def analyze_multiple_files(files: List[UploadFile] = File(...)):
             code = content.decode('utf-8')
             analysis = codeanalyzer.analyze_code_snippet(code)
             results[file.filename] = analysis
+        #If an error ever does occur then add the error to the results file
         except Exception as e:
             results[file.filename] = {"error": str(e)}
     return results
-
-@app.post("/analyze-code")
-async def analyze_code_snippet(code:str):
-    try:
-        analysis = codeanalyzer.analyze_code_snippet(code)
-        return analysis
-    except Exception as e:
-        raise HTTPException(
-            status_code = 500,
-            detail = f"Analysis failed:{str(e)}"
-        )
-
-
-
+#Check if the service is healthy
 @app.get("/health")
 async def health_check():
-    """
-    Check if the service is healthy
-    """
+    #if codeanlayze has been initilized then return that it is healthy else unhealthy
     try:
         analyzer_status = "healthy" if codeanalyzer is not None else "unhealthy"
         return {
